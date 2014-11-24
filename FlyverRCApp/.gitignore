@@ -1,0 +1,4 @@
+/local.properties
+.DS_Store
+*/build/*
+import-summary.txt

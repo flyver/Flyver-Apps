@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AndroidRC</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="connect">Connect</string>
+    <string name="action_settings">Settings</string>
+    <string name="enterIp">Enter Server IP</string>
+    <string name="emergency">Emergency</string>
+    <string name="yaw">Yaw</string>
+    <string name="throttle">Throttle</string>
+    <string name="pidyaw">Yaw PID Coefficients</string>
+    <string name="pidpitch">Pitch PID Coefficients</string>
+    <string name="pidroll">Roll PID Coefficients</string>
+    <string name="p">Proportional</string>
+    <string name="i">Integral</string>
+    <string name="d">Derivative</string>
+    <string name="serverSettings">Server Settings</string>
+
+</resources>

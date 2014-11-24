@@ -1,0 +1,177 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".MainControl"
+    android:id="@+id/asd"
+    android:keepScreenOn="true" >
+
+<!--
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/throttleIncrease"
+        android:focusable="false"
+        android:longClickable="false"
+        android:clickable="true"
+        android:src="@drawable/arrow_up_64px"
+        android:layout_marginTop="130dp"
+        android:layout_marginLeft="450dp"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/throttleDecrease"
+        android:focusable="false"
+        android:longClickable="false"
+        android:clickable="true"
+        android:src="@drawable/arrow_down_64px"
+        android:layout_marginLeft="450dp"
+        android:layout_marginTop="200dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/yawIncrease"
+        android:focusable="false"
+        android:longClickable="false"
+        android:clickable="true"
+        android:src="@drawable/arrow_up_64px"
+        android:layout_marginTop="130dp"
+        android:layout_marginLeft="320dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/yawDecrease"
+        android:focusable="false"
+        android:longClickable="false"
+        android:clickable="true"
+        android:src="@drawable/arrow_down_64px"
+        android:layout_marginLeft="320dp"
+        android:layout_marginTop="200dp" />
+
+-->
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/holdstart"
+        android:focusable="false"
+        android:longClickable="false"
+        android:clickable="true"
+        android:src="@drawable/start_btn"
+        android:background="@null"
+        android:layout_marginLeft="43dp"
+        android:layout_marginTop="22dp"
+        android:layout_alignTop="@+id/joystickView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageButton
+        android:src="@drawable/connect_btn_off"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="@string/connect"
+        android:id="@+id/connectButton"
+        android:background="@null"
+        android:layout_alignParentTop="true"
+        android:layout_alignLeft="@+id/joystickView"
+        android:layout_alignStart="@+id/joystickView"
+        android:layout_alignBottom="@+id/emergencyStop"
+        android:cropToPadding="false"
+        android:focusable="false" />
+
+    <ImageButton
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/emergency_btn_off"
+        android:text="@string/emergency"
+        android:id="@+id/emergencyStop"
+        android:layout_marginRight="18dp"
+        android:background="@null"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/holdstart"
+        android:layout_marginBottom="5dp" />
+<!--
+    <EditText
+        android:layout_width="230dp"
+        android:layout_height="40dp"
+        android:id="@+id/enterIP"
+        android:layout_alignBottom="@+id/connectButton"
+        android:layout_toStartOf="@+id/connectButton"
+        android:inputType="phone"
+        android:hint="@string/enterIp"
+        android:singleLine="true"
+        android:layout_alignRight="@+id/holdstart"
+        android:layout_alignEnd="@+id/holdstart" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/yaw"
+        android:id="@+id/textYaw"
+        android:layout_marginTop="33dp"
+        android:layout_alignTop="@+id/holdstart"
+        android:layout_alignRight="@+id/yawIncrease"
+        android:layout_alignEnd="@+id/yawIncrease"
+        android:layout_marginRight="23dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/throttle"
+        android:id="@+id/textThrottle"
+        android:layout_alignTop="@+id/textYaw"
+        android:layout_alignLeft="@+id/throttleIncrease"
+        android:layout_alignStart="@+id/throttleIncrease"
+        android:layout_alignRight="@+id/throttleIncrease"
+        android:layout_alignEnd="@+id/throttleIncrease" />
+-->
+
+    <com.zerokol.views.JoystickView
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:layout_marginRight="50dp"
+        android:id="@+id/joystickView"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/brandLogo"
+        android:src="@drawable/flyver"
+        android:layout_above="@+id/holdstart"
+        android:layout_alignLeft="@+id/holdstart"
+        android:layout_alignStart="@+id/holdstart" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Picture"
+        android:id="@+id/takePicture"
+        android:layout_alignTop="@+id/connectButton"
+        android:layout_toLeftOf="@+id/connectButton"
+        android:layout_toStartOf="@+id/connectButton" />
+
+    <ImageView
+        android:id="@+id/pic"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignBottom="@+id/joystickView"
+        android:layout_toRightOf="@+id/holdstart"
+        android:layout_toEndOf="@+id/holdstart" />
+
+</RelativeLayout>

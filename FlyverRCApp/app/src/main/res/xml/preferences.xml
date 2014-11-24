@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/serverSettings" >
+
+        <EditTextPreference
+            android:inputType="text"
+            android:digits="0123456789."
+            android:title="@string/enterIp"
+            android:key="serverIp" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pidyaw" >
+
+        <EditTextPreference
+            android:inputType="numberDecimal|numberSigned"
+            android:title="@string/p"
+            android:key="proportionalY" />
+
+        <EditTextPreference
+            android:inputType="numberDecimal|numberSigned"
+            android:title="@string/i"
+            android:key="integralY" />
+
+        <EditTextPreference
+            android:inputType="numberDecimal|numberSigned"
+            android:title="@string/d"
+            android:key="derivativeY" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pidpitch" >
+
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/p"
+        android:key="proportionalP" />
+
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/i"
+        android:key="integralP" />
+
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/d"
+        android:key="derivativeP" />
+    </PreferenceCategory>
+
+   <PreferenceCategory android:title="@string/pidroll" >
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/p"
+        android:key="proportionalR" />
+
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/i"
+        android:key="integralR" />
+
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:title="@string/d"
+        android:key="derivativeR" />
+    </PreferenceCategory>
+</PreferenceScreen>
