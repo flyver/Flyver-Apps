@@ -1,10 +1,13 @@
 package co.flyver.flyverrc;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
@@ -13,6 +16,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -24,12 +28,23 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.gson.reflect.TypeToken;
 import com.zerokol.views.JoystickView;
+
+import java.lang.reflect.Type;
 
 import co.flyver.Client.Client;
 import co.flyver.IPC.IPCKeys;
+import co.flyver.IPC.JSONUtils;
 
-public class MainControl extends Activity implements SensorEventListener {
+import static co.flyver.IPC.IPCContainers.JSONQuadruple;
+import static co.flyver.IPC.IPCContainers.JSONTriple;
+import static co.flyver.IPC.IPCContainers.JSONTuple;
+import static co.flyver.IPC.IPCKeys.PIDPITCH;
+import static co.flyver.IPC.IPCKeys.PIDROLL;
+import static co.flyver.IPC.IPCKeys.PIDYAW;
+
+public class MainControl extends Activity implements SensorEventListener, Client.ConnectionHooks {
 
     /* CONSTANTS */
 
@@ -42,20 +57,46 @@ public class MainControl extends Activity implements SensorEventListener {
 
     /* END OF CONSTANTS */
 
-    public static void setServerIP() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getMainCtrlContext());
-        Log.d(GENERAL, "Server ip is: " + sharedPreferences.getString("serverIp", _DEFAULT ));
-        MainControl.sServerIP = sharedPreferences.getString("serverIp", "");
-    }
-
     private static String sServerIP;
     SensorManager mSensorManager;
     private boolean mSendData = false;
     private boolean mEmergencyStarted = false;
     private static Context sMainControlContext;
     public static Toast lastToast = null;
+    ServiceConnection serviceConnection;
+    static Client client;
+
+    BroadcastReceiver broadcastReceiver  = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            byte[] data = intent.getByteArrayExtra("bitmap");
+            Log.d(GENERAL, "Received data");
+            ImageView imageView = (ImageView) findViewById(R.id.pic);
+            imageView.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
+        }
+    };
+    IntentFilter intentFilter = new IntentFilter("co.flyver.UPDATE");
+
+    //Generic containers and derived type objects
+    private static JSONQuadruple<String, Float, Float, Float> jsonQuadruple = new JSONQuadruple<>();
+    private static Type jsonQuadrupleTypes = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+    private static JSONTriple<String, String, Float> jsonTriple = new JSONTriple<>();
+    private static Type jsonTripleTypes = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
+    private static JSONTuple<String, String> jsonTuple = new JSONTuple<>();
+    private static Type jsonTupleTypes = new TypeToken<JSONTuple<String, String>>() {}.getType();
+
+    private SharedPreferences sharedPreferences;
+
+
     public static Context getMainCtrlContext() {
         return sMainControlContext;
+    }
+
+    public static void setServerIP() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getMainCtrlContext());
+        Log.d(GENERAL, "Server ip is: " + sharedPreferences.getString("serverIp", _DEFAULT ));
+        MainControl.sServerIP = sharedPreferences.getString("serverIp", "");
+        Client.setServerIP(sServerIP);
     }
 
     @Override
@@ -72,12 +113,14 @@ public class MainControl extends Activity implements SensorEventListener {
     public void onResume() {
         super.onResume();
         registerToSensors();
+        registerReceiver(broadcastReceiver, intentFilter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(this);
+        unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -113,36 +156,29 @@ public class MainControl extends Activity implements SensorEventListener {
         }
     }
 
-    public static void applySettings() {
+    public void applySettings() {
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getMainCtrlContext());
-
-        Log.d(GENERAL, "Server ip is: " + sharedPreferences.getString("serverIp", _DEFAULT ));
-        sServerIP = sharedPreferences.getString("serverIp", "");
-        Client.setServerIP(sServerIP);
+        setServerIP();
 
         Log.d(GENERAL, "Yaw pid coefficients: Proportional: " + sharedPreferences.getString("proportionalY", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralY", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeY", _DEFAULT));
-        Client.serialize(IPCKeys.PIDYAW, Float.parseFloat(sharedPreferences.getString("proportionalY", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("integralY", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("derivativeY", _DEFAULT)));
+        jsonQuadruple = new JSONQuadruple<>(PIDYAW, Float.parseFloat(sharedPreferences.getString("proportionalY", _DEFAULT)),
+                                            Float.parseFloat(sharedPreferences.getString("integralY", _DEFAULT)),
+                                            Float.parseFloat(sharedPreferences.getString("derivativeY", _DEFAULT)));
+        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
 
         Log.d(GENERAL, "Pitch pid coefficients: Proportional: " + sharedPreferences.getString("proportionalP", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralP", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeP", _DEFAULT));
-        Client.serialize(IPCKeys.PIDPITCH, Float.parseFloat(sharedPreferences.getString("proportionalP", _DEFAULT)),
+
+        jsonQuadruple = new JSONQuadruple<>(PIDPITCH, Float.parseFloat(sharedPreferences.getString("proportionalP", _DEFAULT)),
                 Float.parseFloat(sharedPreferences.getString("integralP", _DEFAULT)),
                 Float.parseFloat(sharedPreferences.getString("derivativeP", _DEFAULT)));
+        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
 
         Log.d(GENERAL, "Roll pid coefficients: Proportional: " + sharedPreferences.getString("proportionalR", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralR", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeR", _DEFAULT));
-        Client.serialize(IPCKeys.PIDROLL, Float.parseFloat(sharedPreferences.getString("proportionalR", _DEFAULT)),
+        jsonQuadruple = new JSONQuadruple<>(PIDROLL, Float.parseFloat(sharedPreferences.getString("proportionalR", _DEFAULT)),
                 Float.parseFloat(sharedPreferences.getString("integralR", _DEFAULT)),
                 Float.parseFloat(sharedPreferences.getString("derivativeR", _DEFAULT)));
+        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
     }
-
-    Runnable mClientCallback = new Runnable() {
-        @Override
-        public void run() {
-            applySettings();
-        }
-    };
 
     /**
      * Registers to the orientation sensors of the phone
@@ -155,7 +191,8 @@ public class MainControl extends Activity implements SensorEventListener {
             public void onSensorChanged(SensorEvent event) {
                 //if the Start button is released, do not send data to the server
                 if (mSendData) {
-                    Client.serialize(IPCKeys.COORDINATES, event.values[0], event.values[2], event.values[1]);
+                    jsonQuadruple = new JSONQuadruple<>(IPCKeys.COORDINATES, event.values[0], event.values[2], event.values[1]);
+                    Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
                 }
             }
 
@@ -191,7 +228,8 @@ public class MainControl extends Activity implements SensorEventListener {
                     case MotionEvent.ACTION_UP : {
                         mSendData = false;
                         finalImageButton2.setImageResource(R.drawable.start_btn);
-                        Client.serialize(IPCKeys.COORDINATES, 0, 0, 0);
+                        jsonQuadruple = new JSONQuadruple<>(IPCKeys.COORDINATES, 0.0f, 0.0f, 0.0f);
+                        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
                         Log.i(BUTTONS, "Holdstart released");
                     }
                     break;
@@ -219,19 +257,22 @@ public class MainControl extends Activity implements SensorEventListener {
                     return;
                 }
                 Log.d(BUTTONS, "Server IP is: " + sServerIP);
-                finalImageButton1.setImageResource(R.drawable.connect_btn_on);
-                Intent intent = new Intent(getApplicationContext(), Client.class);
-                startService(intent);
-                Handler handler = new Handler();
-                final Runnable runnable = new Runnable() {
+                final Intent intent = new Intent(getApplicationContext(), Client.class);
+                serviceConnection = new ServiceConnection() {
                     @Override
-                    public void run() {
-                        if(!Client.isServerStarted()) {
-                            finalImageButton1.setImageResource(R.drawable.connect_btn_off);
-                        }
+                    public void onServiceConnected(ComponentName name, IBinder service) {
+                        Client.LocalBinder localBinder = (Client.LocalBinder) service;
+                        client = localBinder.getInstance();
+                        startService(intent);
+                        Log.e("cl", "Server has been bound");
+                    }
+                    @Override
+                    public void onServiceDisconnected(ComponentName name) {
+
+                        Log.e("cl", "Server has been bound");
                     }
                 };
-                handler.postDelayed(runnable, 1000);
+                bindService(intent, serviceConnection, BIND_AUTO_CREATE);
             }
         });
 
@@ -245,7 +286,8 @@ public class MainControl extends Activity implements SensorEventListener {
             @Override
             public void onClick(View v) {
                 if(!mEmergencyStarted) {
-                    Client.serialize(IPCKeys.EMERGENCY, "start");
+                    jsonTuple = new JSONTuple<>(IPCKeys.EMERGENCY, "start");
+                    Client.sendMsg(JSONUtils.serialize(jsonTuple, jsonTupleTypes));
                     if(lastToast != null) {
                         lastToast.cancel();
                     }
@@ -254,7 +296,8 @@ public class MainControl extends Activity implements SensorEventListener {
                     lastToast.show();
                     mEmergencyStarted = true;
                 } else {
-                    Client.serialize(IPCKeys.EMERGENCY, "stop");
+                    jsonTuple = new JSONTuple<>(IPCKeys.EMERGENCY, "stop");
+                    Client.sendMsg(JSONUtils.serialize(jsonTuple, jsonTupleTypes));
                     if(lastToast != null) {
                        lastToast.cancel();
                     }
@@ -275,7 +318,8 @@ public class MainControl extends Activity implements SensorEventListener {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Client.serialize(IPCKeys.PICTURE, IPCKeys.PICREADY, 1);
+                jsonTriple = new JSONTriple<>(IPCKeys.PICTURE, IPCKeys.PICREADY, 1.0f);
+                Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
             }
         });
 
@@ -291,7 +335,10 @@ public class MainControl extends Activity implements SensorEventListener {
                 switch(direction) {
                     case JoystickView.FRONT : {
                         Log.d(JOYSTICK, "Throttle increased with " + (STEP * steps) + "steps");
-                        Client.serialize(IPCKeys.THROTTLE, IPCKeys.INCREASE, STEP * steps);
+//                        Client.serialize(IPCKeys.THROTTLE, IPCKeys.INCREASE, STEP * steps);
+                        JSONTriple<String, String, Float> jsonTriple = new JSONTriple<>(IPCKeys.THROTTLE, IPCKeys.INCREASE, STEP * steps);
+                        Type type = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
+                        Client.sendMsg(JSONUtils.serialize(jsonTriple, type));
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -301,7 +348,8 @@ public class MainControl extends Activity implements SensorEventListener {
                     break;
                     case JoystickView.BOTTOM : {
                         Log.d(JOYSTICK, "Throttle decreased with " + (STEP * steps) + "steps");
-                        Client.serialize(IPCKeys.THROTTLE, IPCKeys.DECREASE, STEP * steps);
+                        jsonTriple = new JSONTriple<>(IPCKeys.THROTTLE, IPCKeys.DECREASE, STEP * steps);
+                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -330,7 +378,8 @@ public class MainControl extends Activity implements SensorEventListener {
                     break;
                     case JoystickView.LEFT: {
                         Log.d(JOYSTICK, "Yaw increased with " + (STEP * steps) + "steps");
-                        Client.serialize(IPCKeys.YAW, IPCKeys.INCREASE, STEP * steps);
+                        jsonTriple = new JSONTriple<>(IPCKeys.YAW, IPCKeys.INCREASE, STEP * steps);
+                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -340,7 +389,8 @@ public class MainControl extends Activity implements SensorEventListener {
                     break;
                     case JoystickView.RIGHT: {
                         Log.d(JOYSTICK, "Yaw decreased with " + (STEP * steps) + "steps");
-                        Client.serialize(IPCKeys.YAW, IPCKeys.DECREASE, STEP * steps);
+                        jsonTriple = new JSONTriple<>(IPCKeys.YAW, IPCKeys.DECREASE, STEP * steps);
+                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -372,20 +422,42 @@ public class MainControl extends Activity implements SensorEventListener {
         MainControl.sMainControlContext = getApplicationContext();
         setContentView(R.layout.activity_main_control);
         addListeners();
-        Client.setOnInitCallback(mClientCallback);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        setServerIP();
+        Client.registerConnectionHooks(this);
         Client.setLastToast(lastToast);
         Client.setMainContext(sMainControlContext);
-        setServerIP();
-        IntentFilter intentFilter = new IntentFilter("co.flyver.UPDATE");
+
         intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                byte[] data = intent.getByteArrayExtra("bitmap");
-                Log.d(GENERAL, "Received data");
-                ImageView imageView = (ImageView) findViewById(R.id.pic);
-                imageView.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
+        registerReceiver(broadcastReceiver , intentFilter);
+    }
+
+    private boolean isServiceRunning(Class<?> service) {
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
+            if (service.getName().equals(serviceInfo.service.getClassName())) {
+                return true;
             }
-        }, intentFilter);
+        }
+        return false;
+    }
+
+    @Override
+    public void onConnect() {
+        applySettings();
+        ImageButton imageButton;
+        imageButton = (ImageButton) findViewById(R.id.connectButton);
+        final ImageButton finalImageButton1 = imageButton;
+        finalImageButton1.setImageResource(R.drawable.connect_btn_on);
+    }
+
+    @Override
+    public void onDisconnect() {
+        ImageButton imageButton;
+        imageButton = (ImageButton) findViewById(R.id.connectButton);
+        final ImageButton finalImageButton1 = imageButton;
+        finalImageButton1.setImageResource(R.drawable.connect_btn_off);
     }
 }

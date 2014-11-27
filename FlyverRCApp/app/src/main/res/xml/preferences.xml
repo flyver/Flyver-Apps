@@ -4,7 +4,7 @@
     <PreferenceCategory android:title="@string/serverSettings" >
 
         <EditTextPreference
-            android:inputType="text"
+            android:inputType="text|numberDecimal"
             android:digits="0123456789."
             android:title="@string/enterIp"
             android:key="serverIp" />
