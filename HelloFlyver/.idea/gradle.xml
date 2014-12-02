@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/FlyverCore" />
+            <option value="$PROJECT_DIR$/FlyverServer" />
+            <option value="$PROJECT_DIR$/IOIO/IOIOLibs" />
+            <option value="$PROJECT_DIR$/IOIO/iOIOLibAccessory" />
+            <option value="$PROJECT_DIR$/IOIO/iOIOLibAndroid" />
+            <option value="$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice" />
+            <option value="$PROJECT_DIR$/IOIO/iOIOLibBT" />
+            <option value="$PROJECT_DIR$/IPC" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/dataloggerlib" />
+            <option value="$PROJECT_DIR$/libstreaming" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
+

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="usb">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/IOIO/iOIOLibAccessory/libs/usb.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
