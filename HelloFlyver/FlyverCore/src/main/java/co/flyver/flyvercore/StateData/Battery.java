@@ -2,12 +2,10 @@ package co.flyver.flyvercore.StateData;
 
 import android.util.Log;
 
-import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Semaphore;
 
 import co.flyver.flyvercore.MicroControllers.MicroController;
 
@@ -76,8 +74,7 @@ public class Battery {
     MicroController microController;
     private Queue<Float> queue = new CapacityQueue<>(15);
     private onStatusChanged statusChangeCb;
-    private final Semaphore semaphore = new Semaphore(0);
-
+    
     /* End of */
 
     public void setStatusChangeCb(onStatusChanged statusChangeCb) {
@@ -114,11 +111,15 @@ public class Battery {
             }
         }
         lastStatusPercentage = batteryStatus;
-        Log.d("Battery", String.format("Total voltage: %f Voltage: %f maxVoltage: %f, minVoltage: %f percentage: %d%%", getBatteryVoltage(), medianVoltage, maxVoltage, minVoltage, batteryStatus));
+        Log.d("Battery", String.format("Total voltage: %f Single cell Voltage: %f Voltage: %f percentage: %d%%", getBatteryVoltage(), getSingleCellVoltage(), medianVoltage, batteryStatus));
         return batteryStatus;
     }
     public float getBatteryVoltage(){
-        return calculateMedianVoltage() * batteryCells.getValue();
+        return calculateMedianVoltage() * dividerCoefficient;
+    }
+
+    private float getSingleCellVoltage() {
+        return getBatteryVoltage() / batteryCells.getValue();
     }
     public int getBatteryCells() {
         return batteryCells.getValue();
