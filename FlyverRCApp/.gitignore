@@ -1,4 +1,12 @@
+# Please do not ignore files without consulting the documentation first
 /local.properties
 .DS_Store
 */build/*
 import-summary.txt
+*~
+
+# https://intellij-support.jetbrains.com/entries/23393067
+*/../.idea/workspace.xml
+*/.idea/libraries/*
+../.idea
+*/.idea/workspace.

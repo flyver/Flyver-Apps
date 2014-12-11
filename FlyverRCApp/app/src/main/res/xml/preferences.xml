@@ -16,17 +16,17 @@
         <EditTextPreference
             android:inputType="numberDecimal|numberSigned"
             android:title="@string/p"
-            android:key="proportionalY" />
+            android:key="@string/pid_Y_P" />
 
         <EditTextPreference
             android:inputType="numberDecimal|numberSigned"
             android:title="@string/i"
-            android:key="integralY" />
+            android:key="@string/pid_Y_I" />
 
         <EditTextPreference
             android:inputType="numberDecimal|numberSigned"
             android:title="@string/d"
-            android:key="derivativeY" />
+            android:key="@string/pid_Y_D" />
 
     </PreferenceCategory>
 
@@ -35,33 +35,33 @@
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/p"
-        android:key="proportionalP" />
+        android:key="@string/pid_P_P" />
 
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/i"
-        android:key="integralP" />
+        android:key="@string/pid_P_I" />
 
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/d"
-        android:key="derivativeP" />
+        android:key="@string/pid_P_D" />
     </PreferenceCategory>
 
    <PreferenceCategory android:title="@string/pidroll" >
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/p"
-        android:key="proportionalR" />
+        android:key="@string/pid_R_P" />
 
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/i"
-        android:key="integralR" />
+        android:key="@string/pid_R_I" />
 
     <EditTextPreference
         android:inputType="numberDecimal|numberSigned"
         android:title="@string/d"
-        android:key="derivativeR" />
+        android:key="@string/pid_R_D" />
     </PreferenceCategory>
 </PreferenceScreen>

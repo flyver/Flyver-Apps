@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.reflect.TypeToken;
@@ -159,24 +160,42 @@ public class MainControl extends Activity implements SensorEventListener, Client
     public void applySettings() {
 
         setServerIP();
+        float p;
+        float i;
+        float d;
 
-        Log.d(GENERAL, "Yaw pid coefficients: Proportional: " + sharedPreferences.getString("proportionalY", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralY", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeY", _DEFAULT));
-        jsonQuadruple = new JSONQuadruple<>(PIDYAW, Float.parseFloat(sharedPreferences.getString("proportionalY", _DEFAULT)),
-                                            Float.parseFloat(sharedPreferences.getString("integralY", _DEFAULT)),
-                                            Float.parseFloat(sharedPreferences.getString("derivativeY", _DEFAULT)));
+        String preferenceValue;
+
+        preferenceValue = sharedPreferences.getString("proportionalY", _DEFAULT);
+        p = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("integralY", _DEFAULT);
+        i = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("derivativeY", _DEFAULT);
+        d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+
+        Log.d(GENERAL, "Yaw pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
+        jsonQuadruple = new JSONQuadruple<>(PIDYAW, p, i, d);
         Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
 
-        Log.d(GENERAL, "Pitch pid coefficients: Proportional: " + sharedPreferences.getString("proportionalP", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralP", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeP", _DEFAULT));
+        preferenceValue = sharedPreferences.getString("proportionalP", _DEFAULT);
+        p = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("integralP", _DEFAULT);
+        i = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("derivativeP", _DEFAULT);
+        d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
 
-        jsonQuadruple = new JSONQuadruple<>(PIDPITCH, Float.parseFloat(sharedPreferences.getString("proportionalP", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("integralP", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("derivativeP", _DEFAULT)));
+        Log.d(GENERAL, "Pitch pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
+        jsonQuadruple = new JSONQuadruple<>(PIDPITCH, p, i, d);
         Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
 
-        Log.d(GENERAL, "Roll pid coefficients: Proportional: " + sharedPreferences.getString("proportionalR", _DEFAULT) + " Integral: " + sharedPreferences.getString("integralR", _DEFAULT) + " Derivative: " + sharedPreferences.getString("derivativeR", _DEFAULT));
-        jsonQuadruple = new JSONQuadruple<>(PIDROLL, Float.parseFloat(sharedPreferences.getString("proportionalR", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("integralR", _DEFAULT)),
-                Float.parseFloat(sharedPreferences.getString("derivativeR", _DEFAULT)));
+        preferenceValue = sharedPreferences.getString("proportionalP", _DEFAULT);
+        p = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("integralP", _DEFAULT);
+        i = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        preferenceValue = sharedPreferences.getString("derivativeP", _DEFAULT);
+        d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
+        Log.d(GENERAL, "Roll pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
+        jsonQuadruple = new JSONQuadruple<>(PIDROLL, p, i, d);
         Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
     }
 
@@ -427,6 +446,58 @@ public class MainControl extends Activity implements SensorEventListener, Client
 
         setServerIP();
         Client.registerConnectionHooks(this);
+        Client.registerCallback("battery", new Client.ClientCallback() {
+            @Override
+            public void run(String json) {
+                TextView batteryStatus = (TextView) findViewById(R.id.batteryStatus);
+                Type type = new TypeToken<JSONTuple<String, String>>() {
+                }.getType();
+                JSONTuple<String, String> status = JSONUtils.deserialize(json, type);
+                batteryStatus.setText("Battery: " + status.getValue() + "%");
+            }
+        });
+        Client.registerCallback("pidyaw", new Client.ClientCallback() {
+            @Override
+            public void run(String json) {
+                JSONQuadruple<String, Float, Float, Float> pidyaw;
+                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                pidyaw = JSONUtils.deserialize(json, type);
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                editor.putString("proportionalY", String.valueOf(pidyaw.getValue1()));
+                editor.putString("integralY", String.valueOf(pidyaw.getValue2()));
+                editor.putString("derivativeY", String.valueOf(pidyaw.getValue3()));
+                editor.apply();
+                Log.d("PID", json);
+            }
+        });
+        Client.registerCallback("pidpitch", new Client.ClientCallback() {
+            @Override
+            public void run(String json) {
+                Log.d("PID", json);
+                JSONQuadruple<String, Float, Float, Float> pidpitch;
+                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                pidpitch = JSONUtils.deserialize(json, type);
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                editor.putString("proportionalP", String.valueOf(pidpitch.getValue1()));
+                editor.putString("integralP", String.valueOf(pidpitch.getValue2()));
+                editor.putString("derivativeP", String.valueOf(pidpitch.getValue3()));
+                editor.apply();
+            }
+        });
+        Client.registerCallback("pidroll", new Client.ClientCallback() {
+            @Override
+            public void run(String json) {
+                JSONQuadruple<String, Float, Float, Float> pidroll;
+                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                pidroll = JSONUtils.deserialize(json, type);
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                editor.putString("proportionalR", String.valueOf(pidroll.getValue1()));
+                editor.putString("integralR", String.valueOf(pidroll.getValue2()));
+                editor.putString("derivativeR", String.valueOf(pidroll.getValue3()));
+                editor.apply();
+                Log.d("PID", json);
+            }
+        });
         Client.setLastToast(lastToast);
         Client.setMainContext(sMainControlContext);
 
@@ -446,7 +517,7 @@ public class MainControl extends Activity implements SensorEventListener, Client
 
     @Override
     public void onConnect() {
-        applySettings();
+//        applySettings();
         ImageButton imageButton;
         imageButton = (ImageButton) findViewById(R.id.connectButton);
         final ImageButton finalImageButton1 = imageButton;

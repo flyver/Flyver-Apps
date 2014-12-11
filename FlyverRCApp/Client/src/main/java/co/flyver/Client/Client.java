@@ -203,21 +203,25 @@ public class Client extends IntentService implements ServerListener.Callback {
     }
 
     @Override
-    public String onDataReceived(String json) {
+    public String onDataReceived(final String json) {
         if (json == null) {
             return null;
         }
         Pattern mPattern = Pattern.compile("\\{.+(?=key)\\w+\":(\"\\w+\")\\}?.+\\}?$");
         Matcher matcher = mPattern.matcher(json);
         if (JSONUtils.validateJson(json) && matcher.matches()) {
-            String mKey = matcher.group(1);
-            mKey = mKey.replace('"', ' ').trim();
+            final String mKey = matcher.group(1).replace('"', ' ').trim();
             if (mKey.equals("heartbeat")) {
                 onHeartbeatReceived(json);
                 return json;
             }
             if (sCallbacks.containsKey(mKey)) {
-                sCallbacks.get(mKey).run(json);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        sCallbacks.get(mKey).run(json);
+                    }
+                });
             }
         } else {
             Log.w(CLIENT, "Invalid or malformed JSON: " + json);

@@ -164,7 +164,8 @@
         android:id="@+id/takePicture"
         android:layout_alignTop="@+id/connectButton"
         android:layout_toLeftOf="@+id/connectButton"
-        android:layout_toStartOf="@+id/connectButton" />
+        android:layout_toStartOf="@+id/connectButton"
+        android:visibility="invisible" />
 
     <ImageView
         android:id="@+id/pic"
@@ -173,5 +174,13 @@
         android:layout_alignBottom="@+id/joystickView"
         android:layout_toRightOf="@+id/holdstart"
         android:layout_toEndOf="@+id/holdstart" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:id="@+id/batteryStatus"
+        android:layout_alignTop="@+id/holdstart"
+        android:layout_alignStart="@+id/pic" />
 
 </RelativeLayout>
