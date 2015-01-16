@@ -15,6 +15,8 @@
       <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" />
       <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" />
       <module fileurl="file://$PROJECT_DIR$/libstreaming/libstreaming.iml" filepath="$PROJECT_DIR$/libstreaming/libstreaming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nanohttpd/nanohttpd.iml" filepath="$PROJECT_DIR$/nanohttpd/nanohttpd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
     </modules>
   </component>
 </project>

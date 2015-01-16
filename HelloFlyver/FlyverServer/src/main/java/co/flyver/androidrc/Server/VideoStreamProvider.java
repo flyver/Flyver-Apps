@@ -15,7 +15,7 @@ import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 
 /**
- * Created by flyver on 11/5/14.
+ * Created by Petar Petrov on 11/5/14.
  */
 public class VideoStreamProvider  extends CameraProvider implements Session.Callback, SurfaceHolder.Callback {
 

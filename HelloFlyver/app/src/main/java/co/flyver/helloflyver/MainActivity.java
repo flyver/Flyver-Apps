@@ -9,7 +9,6 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.text.format.Formatter;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,10 +18,6 @@ import android.widget.Toast;
 
 import net.majorkernelpanic.streaming.gl.SurfaceView;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import co.flyver.flyvercore.MicroControllers.IOIOController;
 import co.flyver.androidrc.Server.CameraProvider;
 import co.flyver.androidrc.Server.Server;
 import co.flyver.androidrc.Server.VideoStreamProvider;
@@ -31,6 +26,8 @@ import co.flyver.dataloggerlib.LoggerTestActivity;
 import co.flyver.dataloggerlib.SettingsActivity;
 import co.flyver.flyvercore.DroneTypes.QuadCopterX;
 import co.flyver.flyvercore.MainControllers.MainController;
+import co.flyver.flyvercore.MainControllers.MainControllerInstanceExisting;
+import co.flyver.flyvercore.MicroControllers.IOIOController;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.IOIO.VersionType;
 import ioio.lib.util.android.IOIOActivity;
@@ -43,7 +40,6 @@ public class MainActivity extends IOIOActivity {
     private MainController mainController;
     CameraProvider cameraProvider;
     QuadCopterX drone = new QuadCopterX();
-    boolean microControllerReady = false;
     SurfaceView preview;
     static Server server;
 
@@ -57,8 +53,8 @@ public class MainActivity extends IOIOActivity {
             @Override
             public void onConnect(IOIOController ioioController) {
                 microController = ioioController;
-                microControllerReady = true;
                 if (mainController != null) {
+                    mainController.setMicroController(microController);
                     mainController.onIoioConnect();
                 }
             }
@@ -106,6 +102,7 @@ public class MainActivity extends IOIOActivity {
                 server = localBinder.getServerInstance();
                 server.setCameraProvider(cameraProvider);
                 startService(intent);
+                startMainController();
             }
 
             @Override
@@ -117,26 +114,12 @@ public class MainActivity extends IOIOActivity {
         WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
         serverIp.setText(ipAddress.equals("0.0.0.0") ? "Server IP: 192.168.43.1" : "Server IP: " + ipAddress);
-
-
-        final Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-
-            @Override
-            public void run() {
-                if (microControllerReady) {
-                    Looper.prepare();
-                    startMainController();
-                    timer.cancel();
-                    timer.purge();
-                    Looper.loop();
-                }
-            }
-        }, 0, 1000);
-
     }
 
-
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
 
     private void showVersions(IOIO ioio, String title) {
         toast(String.format("%s\n" +
@@ -151,15 +134,19 @@ public class MainActivity extends IOIOActivity {
                 ioio.getImplVersion(VersionType.HARDWARE_VER)));
     }
     private void startMainController() {
-        mainController = new MainController(this, microController, drone);
-
         try {
-            mainController.start();
-        } catch (Exception e) {
-            Toast.makeText(this, "The USB transmission could not start.",
-                    Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            new MainController.MainControllerBuilder().setActivity(this).setMicroController(microController).setDrone(drone).build();
+        } catch (MainControllerInstanceExisting mainControllerInstanceExisting) {
+            mainControllerInstanceExisting.printStackTrace();
         }
+//
+//        try {
+//            mainController.start();
+//        } catch (Exception e) {
+//            Toast.makeText(this, "The USB transmission could not start.",
+//                    Toast.LENGTH_SHORT).show();
+//            e.printStackTrace();
+//        }
     }
 
     private void toast(final String message) {
@@ -209,7 +196,6 @@ public class MainActivity extends IOIOActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
-
         return true;
     }
 

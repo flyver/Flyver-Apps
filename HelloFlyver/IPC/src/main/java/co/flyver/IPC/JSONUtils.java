@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;
 
 /**
- * Created by flyver on 11/26/14.
+ * Created by Petar Petrov on 11/26/14.
  */
 public class JSONUtils {
     private static Gson mGson = new Gson();
@@ -61,6 +61,10 @@ public class JSONUtils {
      */
     public static <T> String serialize(T t, Type type) {
         return mGson.toJson(t, type);
+    }
+
+    public static <T> String serialize(T t) {
+        return mGson.toJson(t);
     }
 
 }

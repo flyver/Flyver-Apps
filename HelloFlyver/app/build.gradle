@@ -5,7 +5,6 @@ android {
     buildToolsVersion '20.0.0'
 
     defaultConfig {
-        applicationId "co.flyver.helloflyver"
         minSdkVersion 17
         targetSdkVersion 20
         versionCode 1
@@ -13,14 +12,13 @@ android {
     }
     buildTypes {
         release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.google.android.gms:play-services:6.5.87'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':FlyverServer')
     compile project(':FlyverCore')
 }

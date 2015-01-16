@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.util.Arrays;
 
 /**
- * Created by flyver on 10/24/14.
+ * Created by Petar Petrov on 10/24/14.
  */
 public class CameraProvider extends SurfaceView implements SurfaceHolder.Callback {
     private final String CAMERA = "CAMERA";
