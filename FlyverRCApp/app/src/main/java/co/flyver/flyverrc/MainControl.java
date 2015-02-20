@@ -1,7 +1,6 @@
 package co.flyver.flyverrc;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,7 +14,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -35,15 +33,16 @@ import com.zerokol.views.JoystickView;
 import java.lang.reflect.Type;
 
 import co.flyver.Client.Client;
-import co.flyver.IPC.IPCKeys;
+import co.flyver.Client.JoystickListener;
 import co.flyver.IPC.JSONUtils;
+import co.flyver.IPC.SharedIPCKeys;
+import co.flyver.IPC.Tuples;
 
-import static co.flyver.IPC.IPCContainers.JSONQuadruple;
-import static co.flyver.IPC.IPCContainers.JSONTriple;
-import static co.flyver.IPC.IPCContainers.JSONTuple;
-import static co.flyver.IPC.IPCKeys.PIDPITCH;
-import static co.flyver.IPC.IPCKeys.PIDROLL;
-import static co.flyver.IPC.IPCKeys.PIDYAW;
+import static co.flyver.IPC.SharedIPCKeys.*;
+import static co.flyver.IPC.Tuples.Quadruple;
+import static co.flyver.IPC.Tuples.Triple;
+import static co.flyver.IPC.Tuples.Tuple;
+
 
 public class MainControl extends Activity implements SensorEventListener, Client.ConnectionHooks {
 
@@ -62,10 +61,14 @@ public class MainControl extends Activity implements SensorEventListener, Client
     SensorManager mSensorManager;
     private boolean mSendData = false;
     private boolean mEmergencyStarted = false;
+    private boolean mServiceStartRequested = false;
     private static Context sMainControlContext;
     public static Toast lastToast = null;
     ServiceConnection serviceConnection;
     static Client client;
+    JoystickListener joystickListener;
+    Thread joystickController;
+    Intent jsonIntent = new Intent("co.flyver.SENDJSON");
 
     BroadcastReceiver broadcastReceiver  = new BroadcastReceiver() {
         @Override
@@ -79,12 +82,12 @@ public class MainControl extends Activity implements SensorEventListener, Client
     IntentFilter intentFilter = new IntentFilter("co.flyver.UPDATE");
 
     //Generic containers and derived type objects
-    private static JSONQuadruple<String, Float, Float, Float> jsonQuadruple = new JSONQuadruple<>();
-    private static Type jsonQuadrupleTypes = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
-    private static JSONTriple<String, String, Float> jsonTriple = new JSONTriple<>();
-    private static Type jsonTripleTypes = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
-    private static JSONTuple<String, String> jsonTuple = new JSONTuple<>();
-    private static Type jsonTupleTypes = new TypeToken<JSONTuple<String, String>>() {}.getType();
+    private static Quadruple<String, Float, Float, Float> jsonQuadruple = new Quadruple<>();
+    private static Type jsonQuadrupleTypes = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
+    private static Triple<String, String, Float> jsonTriple = new Triple<>();
+    private static Type jsonTripleTypes = new TypeToken<Triple<String, String, Float>>() {}.getType();
+    private static Tuple<String, String> jsonTuple = new Tuple<>();
+    private static Type jsonTupleTypes = new TypeToken<Tuple<String, String>>() {}.getType();
 
     private SharedPreferences sharedPreferences;
 
@@ -174,8 +177,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
         d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
 
         Log.d(GENERAL, "Yaw pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
-        jsonQuadruple = new JSONQuadruple<>(PIDYAW, p, i, d);
-        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        jsonQuadruple = new Quadruple<>(PIDYAW, p, i, d);
+        jsonIntent.putExtra("json", JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        sendBroadcast(jsonIntent);
 
         preferenceValue = sharedPreferences.getString("proportionalP", _DEFAULT);
         p = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
@@ -185,8 +189,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
         d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
 
         Log.d(GENERAL, "Pitch pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
-        jsonQuadruple = new JSONQuadruple<>(PIDPITCH, p, i, d);
-        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        jsonQuadruple = new Quadruple<>(PIDPITCH, p, i, d);
+        jsonIntent.putExtra("json", JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        sendBroadcast(jsonIntent);
 
         preferenceValue = sharedPreferences.getString("proportionalP", _DEFAULT);
         p = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
@@ -195,8 +200,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
         preferenceValue = sharedPreferences.getString("derivativeP", _DEFAULT);
         d = Float.parseFloat(preferenceValue.equals("") ? String.valueOf(0) : preferenceValue);
         Log.d(GENERAL, "Roll pid coefficients: Proportional: " + p + " Integral: " + i + " Derivative: " + d);
-        jsonQuadruple = new JSONQuadruple<>(PIDROLL, p, i, d);
-        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        jsonQuadruple = new Quadruple<>(PIDROLL, p, i, d);
+        jsonIntent.putExtra("json", JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+        sendBroadcast(jsonIntent);
     }
 
     /**
@@ -210,8 +216,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
             public void onSensorChanged(SensorEvent event) {
                 //if the Start button is released, do not send data to the server
                 if (mSendData) {
-                    jsonQuadruple = new JSONQuadruple<>(IPCKeys.COORDINATES, event.values[0], event.values[2], event.values[1]);
-                    Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+                    jsonQuadruple = new Quadruple<>(COORDINATES, event.values[0], event.values[2], event.values[1]);
+                    jsonIntent.putExtra("json", JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+                    sendBroadcast(jsonIntent);
                 }
             }
 
@@ -247,8 +254,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
                     case MotionEvent.ACTION_UP : {
                         mSendData = false;
                         finalImageButton2.setImageResource(R.drawable.start_btn);
-                        jsonQuadruple = new JSONQuadruple<>(IPCKeys.COORDINATES, 0.0f, 0.0f, 0.0f);
-                        Client.sendMsg(JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+                        jsonQuadruple = new Quadruple<>(COORDINATES, 0.0f, 0.0f, 0.0f);
+                        jsonIntent.putExtra("json", JSONUtils.serialize(jsonQuadruple, jsonQuadrupleTypes));
+                        sendBroadcast(jsonIntent);
                         Log.i(BUTTONS, "Holdstart released");
                     }
                     break;
@@ -263,10 +271,13 @@ public class MainControl extends Activity implements SensorEventListener, Client
 
         /* Connect Button */
         imageButton = (ImageButton) findViewById(R.id.connectButton);
-        final ImageButton finalImageButton1 = imageButton;
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(mServiceStartRequested) {
+                    Log.e(BUTTONS, "Service start already requested!");
+                    return;
+                }
                 if(sServerIP == null || sServerIP.isEmpty()) {
                     if(lastToast != null) {
                         lastToast.cancel();
@@ -275,6 +286,7 @@ public class MainControl extends Activity implements SensorEventListener, Client
                     lastToast.show();
                     return;
                 }
+                mServiceStartRequested = true;
                 Log.d(BUTTONS, "Server IP is: " + sServerIP);
                 final Intent intent = new Intent(getApplicationContext(), Client.class);
                 serviceConnection = new ServiceConnection() {
@@ -305,8 +317,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
             @Override
             public void onClick(View v) {
                 if(!mEmergencyStarted) {
-                    jsonTuple = new JSONTuple<>(IPCKeys.EMERGENCY, "start");
-                    Client.sendMsg(JSONUtils.serialize(jsonTuple, jsonTupleTypes));
+                    jsonTuple = new Tuple<>(EMERGENCY, "start");
+                    jsonIntent.putExtra("json", JSONUtils.serialize(jsonTuple, jsonTupleTypes));
+                    sendBroadcast(jsonIntent);
                     if(lastToast != null) {
                         lastToast.cancel();
                     }
@@ -315,8 +328,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
                     lastToast.show();
                     mEmergencyStarted = true;
                 } else {
-                    jsonTuple = new JSONTuple<>(IPCKeys.EMERGENCY, "stop");
-                    Client.sendMsg(JSONUtils.serialize(jsonTuple, jsonTupleTypes));
+                    jsonTuple = new Tuple<>(EMERGENCY, "stop");
+                    jsonIntent.putExtra("json", JSONUtils.serialize(jsonTuple, jsonTupleTypes));
+                    sendBroadcast(jsonIntent);
                     if(lastToast != null) {
                        lastToast.cancel();
                     }
@@ -337,8 +351,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                jsonTriple = new JSONTriple<>(IPCKeys.PICTURE, IPCKeys.PICREADY, 1.0f);
-                Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                jsonTriple = new Triple<>(PICTURE, PICREADY, 1.0f);
+                jsonIntent.putExtra("json", JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                sendBroadcast(jsonIntent);
             }
         });
 
@@ -354,26 +369,16 @@ public class MainControl extends Activity implements SensorEventListener, Client
                 switch(direction) {
                     case JoystickView.FRONT : {
                         Log.d(JOYSTICK, "Throttle increased with " + (STEP * steps) + "steps");
-//                        Client.serialize(IPCKeys.THROTTLE, IPCKeys.INCREASE, STEP * steps);
-                        JSONTriple<String, String, Float> jsonTriple = new JSONTriple<>(IPCKeys.THROTTLE, IPCKeys.INCREASE, STEP * steps);
-                        Type type = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
-                        Client.sendMsg(JSONUtils.serialize(jsonTriple, type));
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Triple<String, String, Float> jsonTriple = new Triple<>(THROTTLE, INCREASE, STEP * steps);
+                        jsonIntent.putExtra("json", JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                        sendBroadcast(jsonIntent);
                     }
                     break;
                     case JoystickView.BOTTOM : {
                         Log.d(JOYSTICK, "Throttle decreased with " + (STEP * steps) + "steps");
-                        jsonTriple = new JSONTriple<>(IPCKeys.THROTTLE, IPCKeys.DECREASE, STEP * steps);
-                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        jsonTriple = new Triple<>(THROTTLE, DECREASE, STEP * steps);
+                        jsonIntent.putExtra("json", JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                        sendBroadcast(jsonIntent);
                     }
                     break;
                     case JoystickView.BOTTOM_LEFT : {
@@ -397,19 +402,16 @@ public class MainControl extends Activity implements SensorEventListener, Client
                     break;
                     case JoystickView.LEFT: {
                         Log.d(JOYSTICK, "Yaw increased with " + (STEP * steps) + "steps");
-                        jsonTriple = new JSONTriple<>(IPCKeys.YAW, IPCKeys.INCREASE, STEP * steps);
-                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        jsonTriple = new Triple<>(YAW, INCREASE, STEP * steps);
+                        jsonIntent.putExtra("json", JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                        sendBroadcast(jsonIntent);
                     }
                     break;
                     case JoystickView.RIGHT: {
                         Log.d(JOYSTICK, "Yaw decreased with " + (STEP * steps) + "steps");
-                        jsonTriple = new JSONTriple<>(IPCKeys.YAW, IPCKeys.DECREASE, STEP * steps);
-                        Client.sendMsg(JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                        jsonTriple = new Triple<>(YAW, DECREASE, STEP * steps);
+                        jsonIntent.putExtra("json", JSONUtils.serialize(jsonTriple, jsonTripleTypes));
+                        sendBroadcast(jsonIntent);
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -440,6 +442,9 @@ public class MainControl extends Activity implements SensorEventListener, Client
         super.onCreate(savedInstanceState);
         MainControl.sMainControlContext = getApplicationContext();
         setContentView(R.layout.activity_main_control);
+        joystickListener = new JoystickListener(getApplicationContext());
+        joystickController = new Thread(joystickListener);
+        joystickController.start();
         addListeners();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -450,17 +455,16 @@ public class MainControl extends Activity implements SensorEventListener, Client
             @Override
             public void run(String json) {
                 TextView batteryStatus = (TextView) findViewById(R.id.batteryStatus);
-                Type type = new TypeToken<JSONTuple<String, String>>() {
-                }.getType();
-                JSONTuple<String, String> status = JSONUtils.deserialize(json, type);
+                Type type = new TypeToken<Tuple<String, String>>() {}.getType();
+                Tuple<String, String> status = JSONUtils.deserialize(json, type);
                 batteryStatus.setText("Battery: " + status.getValue() + "%");
             }
         });
         Client.registerCallback("pidyaw", new Client.ClientCallback() {
             @Override
             public void run(String json) {
-                JSONQuadruple<String, Float, Float, Float> pidyaw;
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                Quadruple<String, Float, Float, Float> pidyaw;
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 pidyaw = JSONUtils.deserialize(json, type);
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
                 editor.putString("proportionalY", String.valueOf(pidyaw.getValue1()));
@@ -474,8 +478,8 @@ public class MainControl extends Activity implements SensorEventListener, Client
             @Override
             public void run(String json) {
                 Log.d("PID", json);
-                JSONQuadruple<String, Float, Float, Float> pidpitch;
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                Quadruple<String, Float, Float, Float> pidpitch;
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 pidpitch = JSONUtils.deserialize(json, type);
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
                 editor.putString("proportionalP", String.valueOf(pidpitch.getValue1()));
@@ -487,8 +491,8 @@ public class MainControl extends Activity implements SensorEventListener, Client
         Client.registerCallback("pidroll", new Client.ClientCallback() {
             @Override
             public void run(String json) {
-                JSONQuadruple<String, Float, Float, Float> pidroll;
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                Quadruple<String, Float, Float, Float> pidroll;
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 pidroll = JSONUtils.deserialize(json, type);
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
                 editor.putString("proportionalR", String.valueOf(pidroll.getValue1()));
@@ -505,19 +509,24 @@ public class MainControl extends Activity implements SensorEventListener, Client
         registerReceiver(broadcastReceiver , intentFilter);
     }
 
-    private boolean isServiceRunning(Class<?> service) {
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for(ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
-            if (service.getName().equals(serviceInfo.service.getClassName())) {
-                return true;
-            }
+
+    @Override
+    public boolean dispatchGenericMotionEvent(MotionEvent motionEvent) {
+        float x = motionEvent.getX();
+        float y = motionEvent.getY();
+        if((Math.abs(x) < 0.1) && (Math.abs(y) < 0.1)) {
+            Log.e("ASDFS", "Threshold not reached, do not change values");
+            joystickListener.setActive(false);
+            return false;
         }
-        return false;
+        joystickListener.setActive(true);
+        joystickListener.setX(x);
+        joystickListener.setY(y);
+        return true;
     }
 
     @Override
     public void onConnect() {
-//        applySettings();
         ImageButton imageButton;
         imageButton = (ImageButton) findViewById(R.id.connectButton);
         final ImageButton finalImageButton1 = imageButton;
@@ -530,5 +539,6 @@ public class MainControl extends Activity implements SensorEventListener, Client
         imageButton = (ImageButton) findViewById(R.id.connectButton);
         final ImageButton finalImageButton1 = imageButton;
         finalImageButton1.setImageResource(R.drawable.connect_btn_off);
+        mServiceStartRequested = false;
     }
 }

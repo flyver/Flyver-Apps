@@ -6,7 +6,5 @@ import-summary.txt
 *~
 
 # https://intellij-support.jetbrains.com/entries/23393067
-*/../.idea/workspace.xml
+*/.idea/workspace.xml
 */.idea/libraries/*
-../.idea
-*/.idea/workspace.

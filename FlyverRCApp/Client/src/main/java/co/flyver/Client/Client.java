@@ -1,10 +1,13 @@
 package co.flyver.Client;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
@@ -118,6 +121,20 @@ public class Client extends IntentService implements ServerListener.Callback {
             sStreamFromServer = new BufferedReader(new InputStreamReader(mConnection.getInputStream()));
             Log.d(CLIENT, "Connection initialized");
             mServerListener.registerCallback(this).registerInputStream(sStreamFromServer);
+            BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String msg = intent.getStringExtra("json");
+                    sStreamToServer.println(msg);
+                    sStreamToServer.flush();
+                }
+            };
+            IntentFilter intentFilter = new IntentFilter("co.flyver.SENDJSON");
+            HandlerThread handlerThread = new HandlerThread("HandlerThread");
+            handlerThread.start();
+            Looper looper = handlerThread.getLooper();
+            Handler handler = new Handler(looper);
+            registerReceiver(broadcastReceiver, intentFilter, null, handler);
 
             new Thread() {
                 @Override
@@ -154,6 +171,7 @@ public class Client extends IntentService implements ServerListener.Callback {
                     Looper.prepare();
                     displayToast("Server is not started");
                     mConnected = false;
+                    sConnectionHooks.onDisconnect();
                     Looper.loop();
                 }
             }.start();
