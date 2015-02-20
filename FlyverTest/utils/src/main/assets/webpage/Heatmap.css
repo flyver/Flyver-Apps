@@ -1,0 +1,92 @@
+#body {
+  height: 100%;
+}
+#html {
+  height: 100%;
+}
+
+#container {
+  position: relative
+  width: 100%;
+  height: 100%;
+}
+
+#map-canvas {
+  position: absolute;
+  width: 80%;
+  height: 100%;
+}
+
+#scale {
+  position: absolute;
+  width: 20%;
+  height: 100%;
+  margin-left: 80%;
+  background-image: url(./bg.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+#brand {
+  position: relative;
+  width: 90%;
+  height: 20%;
+  margin-left: 7%;
+  top: 80%;
+  /*margin-left: 80%;*/
+  /*bottom: 80%;*/
+  background-image: url(./flyver_logo_208x80.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+#scale-image {
+	position: absolute;
+	width: 70%;
+	height: 70%;
+  margin-left: 25%;
+  top: 15%;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+#latitude {
+  position: absolute;
+  width: 60%;
+  height: 8%;
+  margin-left: 15%;
+  top: 2%;
+}
+
+#longitude {
+  position: absolute;
+  width: 60%;
+  height: 8%;
+  margin-left: 15%;
+  top: 7%;
+}
+
+.textbox {
+  font: arial;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.scale1 {
+  background-image: url(./scale1.png);
+}
+.scale2 {
+  background-image: url(./scale2.png);
+}
+.scale3 {
+  background-image: url(./scale3.png);
+}
+.scale4 {
+  background-image: url(./scale4.png);
+}
+.scale5 {
+  background-image: url(./scale5.png);
+}
+.scale6 {
+  background-image: url(./scale6.png);
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Heatmaps</title>
+  <style>
+  html, body, #map-canvas {
+    height: 100%;
+    margin: 0px;
+    padding: 0px
+  }
+  </style>
+  <link rel="stylesheet" type="text/css" href="Heatmap.css">
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
+</head>
+
+<body>
+  <div id="container">
+    <div id="map-canvas"></div>
+    <div id="scale">
+  		<div id="scale-image" class="scale1"> </div>
+      <div id="longitude" class="textbox"> Longitude: 42.645829 </div>
+      <div id="latitude" class="textbox" > Latitude: 23.376452 </div>
+      <div id="brand"></div>
+  	</div>
+  </div>
+  <script src="Heatmap.js"></script>
+</body>
+</html>

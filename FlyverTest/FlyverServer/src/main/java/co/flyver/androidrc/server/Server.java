@@ -1,4 +1,4 @@
-package co.flyver.androidrc.Server;
+package co.flyver.androidrc.server;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -23,16 +23,14 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import co.flyver.IPC.IPCKeys;
-import co.flyver.IPC.JSONUtils;
-import co.flyver.androidrc.Server.interfaces.ServerCallback;
+import co.flyver.utils.containers.SharedIPCKeys;
+import co.flyver.utils.JSONUtils;
+import co.flyver.androidrc.server.interfaces.ServerCallback;
 import co.flyver.dataloggerlib.LoggerService;
-import co.flyver.utils.NanoHTTPDServer;
-import fi.iki.elonen.ServerRunner;
+import co.flyver.utils.containers.Tuples;
 
-import static co.flyver.IPC.IPCContainers.JSONQuadruple;
-import static co.flyver.IPC.IPCContainers.JSONTriple;
-import static co.flyver.IPC.IPCContainers.JSONTuple;
+import static co.flyver.utils.containers.Tuples.Quadruple;
+import static co.flyver.utils.containers.Tuples.Triple;
 
 
 /**
@@ -48,10 +46,10 @@ public class Server extends IntentService {
     Gson mGson = new Gson();
     static BufferedReader mStreamFromClient;
     static PrintWriter mStreamToClient;
-    JSONQuadruple<String, Float, Float, Float> mJsonCoordinates = new JSONQuadruple<>();
-    JSONTriple<String, String, Float> mJsonAction = new JSONTriple<>();
-    JSONQuadruple<String, Float, Float, Float> mJsonPid = new JSONQuadruple<>();
-    JSONTuple<String, String> mJsonTuple = new JSONTuple<>();
+    Quadruple<String, Float, Float, Float> mJsonCoordinates = new Quadruple<>();
+    Triple<String, String, Float> mJsonAction = new Triple<>();
+    Quadruple<String, Float, Float, Float> mJsonPid = new Quadruple<>();
+    Tuples.Tuple<String, String> mTuple = new Tuples.Tuple<>();
     static HashMap<String, ServerCallback> mCallbacks = new HashMap<>();
     IBinder mBinder = new LocalBinder();
     CameraProvider mCameraProvider;
@@ -119,13 +117,6 @@ public class Server extends IntentService {
             Log.d(SERVER, "Server Started");
             openSockets();
             initConnection(mConnection);
-            mCameraProvider.setCallback(new Runnable() {
-                @Override
-                public void run() {
-                    mPicture = mCameraProvider.getLastPicture();
-                    newPictureReady();
-                }
-            });
             loop();
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,17 +151,16 @@ public class Server extends IntentService {
 
         mStreamFromClient = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         mStreamToClient = new PrintWriter(connection.getOutputStream(), true);
-        mCameraProvider.init();
-        sCurrentStatus.setEmergency(new JSONTuple<>("emergency", "stop"));
+        sCurrentStatus.setEmergency(new Tuples.Tuple<>("emergency", "stop"));
         //initialize a heartbeat to the client
         mHeartbeat.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
-                JSONTuple<String, String> jsonTuple = new JSONTuple<>(IPCKeys.HEARTBEAT,
+                Tuples.Tuple<String, String> tuple = new Tuples.Tuple<>(SharedIPCKeys.HEARTBEAT,
                         String.valueOf(currentTime / 1000));
-                Type type = new TypeToken<JSONTuple<String, String>>() {}.getType();
-                String json = mGson.toJson(jsonTuple, type);
+                Type type = new TypeToken<Tuples.Tuple<String, String>>() {}.getType();
+                String json = mGson.toJson(tuple, type);
                 mStreamToClient.println(json);
                 mStreamToClient.flush();
             }
@@ -205,9 +195,9 @@ public class Server extends IntentService {
 
         mKey = mKey.replace('"', ' ').trim();
         switch (mKey) {
-            case IPCKeys.COORDINATES: {
+            case SharedIPCKeys.COORDINATES: {
                 //TypeToken must be passed to the fromJson method to avoid type erasure problems
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 mJsonCoordinates = JSONUtils.deserialize(json, type);
                 sCurrentStatus.setAzimuth(mJsonCoordinates.getValue1());
                 sCurrentStatus.setPitch(mJsonCoordinates.getValue2());
@@ -215,31 +205,31 @@ public class Server extends IntentService {
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.YAW: {
-                Type type = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
+            case SharedIPCKeys.YAW: {
+                Type type = new TypeToken<Triple<String, String, Float>>() {}.getType();
                 mJsonAction = JSONUtils.deserialize(json, type);
                 sCurrentStatus.setYaw(mJsonAction);
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.THROTTLE: {
-                Type type = new TypeToken<JSONTriple<String, String, Float>>() {}.getType();
+            case SharedIPCKeys.THROTTLE: {
+                Type type = new TypeToken<Triple<String, String, Float>>() {}.getType();
                 mJsonAction = JSONUtils.deserialize(json, type);
                 sCurrentStatus.setThrottle(mJsonAction);
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.EMERGENCY: {
-                Type type = new TypeToken<JSONTuple<String, String>>() {}.getType();
-                mJsonTuple = JSONUtils.deserialize(json, type);
-                sCurrentStatus.setEmergency(mJsonTuple);
+            case SharedIPCKeys.EMERGENCY: {
+                Type type = new TypeToken<Tuples.Tuple<String, String>>() {}.getType();
+                mTuple = JSONUtils.deserialize(json, type);
+                sCurrentStatus.setEmergency(mTuple);
                 fireCallbacks(mKey, json);
-                mStreamToClient.println("Emergency " + mJsonTuple.value);
+                mStreamToClient.println("Emergency " + mTuple.value);
                 mStreamToClient.flush();
             }
             break;
-            case IPCKeys.PIDYAW: {
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+            case SharedIPCKeys.PIDYAW: {
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 mJsonPid = JSONUtils.deserialize(json, type);
                 sCurrentStatus.mPidYaw.setP(mJsonPid.getValue1());
                 sCurrentStatus.mPidYaw.setI(mJsonPid.getValue2());
@@ -247,8 +237,8 @@ public class Server extends IntentService {
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.PIDPITCH: {
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+            case SharedIPCKeys.PIDPITCH: {
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 mJsonPid = JSONUtils.deserialize(json, type);
                 sCurrentStatus.mPidPitch.setP(mJsonPid.getValue1());
                 sCurrentStatus.mPidPitch.setI(mJsonPid.getValue2());
@@ -256,8 +246,8 @@ public class Server extends IntentService {
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.PIDROLL: {
-                Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+            case SharedIPCKeys.PIDROLL: {
+                Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
                 mJsonPid = JSONUtils.deserialize(json, type);
                 sCurrentStatus.mPidRoll.setP(mJsonPid.getValue1());
                 sCurrentStatus.mPidRoll.setI(mJsonPid.getValue2());
@@ -265,7 +255,7 @@ public class Server extends IntentService {
                 fireCallbacks(mKey, json);
             }
             break;
-            case IPCKeys.PICTURE: {
+            case SharedIPCKeys.PICTURE: {
                 mCameraProvider.snapIt();
                 fireCallbacks(mKey, json);
             }
@@ -297,7 +287,7 @@ public class Server extends IntentService {
             mHeartbeat.cancel();
             mHeartbeat.purge();
             mHeartbeat = new Timer();
-            sCurrentStatus.setEmergency(new JSONTuple<>("emergency", "start"));
+            sCurrentStatus.setEmergency(new Tuples.Tuple<>("emergency", "start"));
             mConnection = mServerSocket.accept();
             initConnection(mConnection);
             loop();
@@ -313,8 +303,8 @@ public class Server extends IntentService {
         Log.d(SERVER, "New picture is ready");
         mPicture = mCameraProvider.getLastPicture();
         String base64Pic = Base64.encodeToString(mPicture, Base64.DEFAULT);
-        JSONTriple<String, String, String> mJsonBitmap = new JSONTriple<>(IPCKeys.PICTURE, IPCKeys.PICREADY, base64Pic);
-        String mJson = JSONUtils.serialize(mJsonBitmap, new TypeToken<JSONTriple<String, String, String>>() {}.getType());
+        Triple<String, String, String> mJsonBitmap = new Triple<>(SharedIPCKeys.PICTURE, SharedIPCKeys.PICREADY, base64Pic);
+        String mJson = JSONUtils.serialize(mJsonBitmap, new TypeToken<Triple<String, String, String>>() {}.getType());
         mStreamToClient.println(mJson);
         Log.d(SERVER, mJson);
         mStreamToClient.flush();
@@ -348,19 +338,19 @@ public class Server extends IntentService {
     private void onClientConnected() {
 
         String json;
-        Type type = new TypeToken<JSONQuadruple<String, Float, Float, Float>>() {}.getType();
+        Type type = new TypeToken<Quadruple<String, Float, Float, Float>>() {}.getType();
 
-        mJsonPid = new JSONQuadruple<>("pidyaw", sCurrentStatus.getPidYaw().getP(), sCurrentStatus.getPidYaw().getI(), sCurrentStatus.getPidYaw().getD());
+        mJsonPid = new Quadruple<>("pidyaw", sCurrentStatus.getPidYaw().getP(), sCurrentStatus.getPidYaw().getI(), sCurrentStatus.getPidYaw().getD());
         json = mGson.toJson(mJsonPid, type);
         mStreamToClient.println(json);
         mStreamToClient.flush();
 
-        mJsonPid = new JSONQuadruple<>("pidpitch", sCurrentStatus.getPidPitch().getP(), sCurrentStatus.getPidPitch().getI(), sCurrentStatus.getPidPitch().getD());
+        mJsonPid = new Quadruple<>("pidpitch", sCurrentStatus.getPidPitch().getP(), sCurrentStatus.getPidPitch().getI(), sCurrentStatus.getPidPitch().getD());
         json = mGson.toJson(mJsonPid, type);
         mStreamToClient.println(json);
         mStreamToClient.flush();
 
-        mJsonPid = new JSONQuadruple<>("pidroll", sCurrentStatus.getPidRoll().getP(), sCurrentStatus.getPidRoll().getI(), sCurrentStatus.getPidRoll().getD());
+        mJsonPid = new Quadruple<>("pidroll", sCurrentStatus.getPidRoll().getP(), sCurrentStatus.getPidRoll().getI(), sCurrentStatus.getPidRoll().getD());
         json = mGson.toJson(mJsonPid, type);
         mStreamToClient.println(json);
         mStreamToClient.flush();

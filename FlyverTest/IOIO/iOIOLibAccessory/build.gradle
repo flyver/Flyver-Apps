@@ -1,0 +1,21 @@
+apply plugin: 'com.android.library'
+
+android {
+    //compileSdkVersion 19
+    compileSdkVersion "Google Inc.:Google APIs:19"
+    buildToolsVersion "19.1.0"
+
+    defaultConfig {
+    }
+
+    buildTypes {
+        release {
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile project(':iOIOLibAndroid')
+    compile files('libs/usb.jar')
+}
