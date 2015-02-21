@@ -6,7 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/FlyverServer/FlyverServer.iml" filepath="$PROJECT_DIR$/FlyverServer/FlyverServer.iml" />
       <module fileurl="file://$PROJECT_DIR$/FlyverTest.iml" filepath="$PROJECT_DIR$/FlyverTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/IOIO/IOIOLibs/IOIOLibs.iml" filepath="$PROJECT_DIR$/IOIO/IOIOLibs/IOIOLibs.iml" />
-      <module fileurl="file://$PROJECT_DIR$/IPC/IPC.iml" filepath="$PROJECT_DIR$/IPC/IPC.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/dataloggerlib/dataloggerlib.iml" filepath="$PROJECT_DIR$/dataloggerlib/dataloggerlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" />

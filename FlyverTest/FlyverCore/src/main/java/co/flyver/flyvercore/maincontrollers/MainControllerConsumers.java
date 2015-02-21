@@ -1,6 +1,9 @@
 package co.flyver.flyvercore.maincontrollers;
 
+import co.flyver.androidrc.server.Server;
 import co.flyver.flyvercore.pidcontrollers.PIDSettings;
+import co.flyver.utils.JSONUtils;
+import co.flyver.utils.containers.Tuples;
 import co.flyver.utils.flyvermq.FlyverMQ;
 import co.flyver.utils.flyvermq.FlyverMQMessage;
 import co.flyver.utils.flyvermq.exceptions.FlyverMQException;
@@ -19,6 +22,8 @@ public class MainControllerConsumers {
     FlyverMQConsumer pidPitchConsumer = null;
     FlyverMQConsumer pidRollConsumer = null;
     FlyverMQConsumer pidYawConsumer = null;
+    FlyverMQConsumer batteryStatus = null;
+    FlyverMQConsumer emergencyConsumer = null;
 
     final String TOPIC_THROTTLE = "control.throttle";
     final String TOPIC_PITCH = "control.pitch";
@@ -27,6 +32,8 @@ public class MainControllerConsumers {
     final String TOPIC_PID_PITCH = "control.pidpitch";
     final String TOPIC_PID_YAW = "control.pidyaw";
     final String TOPIC_PID_ROLL = "control.pidroll";
+    final String TOPIC_BATTERYSTATUS = "battery.status";
+    final String TOPIC_EMERGENCY = "emergency";
 
     MainControllerConsumers() {
 
@@ -229,6 +236,54 @@ public class MainControllerConsumers {
 
     }
 
+    private void createBatteryStatusConsumer() {
+        batteryStatus = new FlyverMQConsumer() {
+            @Override
+            public void dataReceived(FlyverMQMessage message) {
+                Tuples.Tuple<String, String> status = new Tuples.Tuple<>(TOPIC_BATTERYSTATUS, String.valueOf(message.data));
+                Server.sendMsgToClient(JSONUtils.serialize(status));
+            }
+
+            @Override
+            public void unregistered() {
+
+            }
+
+            @Override
+            public void paused() {
+
+            }
+
+            @Override
+            public void resumed() {
+
+            }
+        };
+    }
+
+    private void createEmergencyConsumer() {
+        emergencyConsumer = new FlyverMQConsumer() {
+            @Override
+            public void dataReceived(FlyverMQMessage message) {
+                MainController.getInstance().emergencyStop("Received from external app");
+            }
+
+            @Override
+            public void unregistered() {
+
+            }
+
+            @Override
+            public void paused() {
+
+            }
+
+            @Override
+            public void resumed() {
+
+            }
+        };
+    }
     void start() throws FlyverMQException {
         createThrottleConsumer();
         createPitchConsumer();
@@ -237,5 +292,7 @@ public class MainControllerConsumers {
         createPidPitchConsumer();
         createPidRollConsumer();
         createPidYawConsumer();
+        createBatteryStatusConsumer();
+        createEmergencyConsumer();
     }
 }
