@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AirQualityMonitor/AirQualityMonitor.iml" filepath="$PROJECT_DIR$/AirQualityMonitor/AirQualityMonitor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AirQualityMonitorApp.iml" filepath="$PROJECT_DIR$/AirQualityMonitorApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FlyverCore/FlyverCore.iml" filepath="$PROJECT_DIR$/FlyverCore/FlyverCore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FlyverServer/FlyverServer.iml" filepath="$PROJECT_DIR$/FlyverServer/FlyverServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOIO/IOIOLibs/IOIOLibs.iml" filepath="$PROJECT_DIR$/IOIO/IOIOLibs/IOIOLibs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dataloggerlib/dataloggerlib.iml" filepath="$PROJECT_DIR$/dataloggerlib/dataloggerlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibAndroid/iOIOLibAndroid.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibAndroid/iOIOLibAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" filepath="$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libstreaming/libstreaming.iml" filepath="$PROJECT_DIR$/libstreaming/libstreaming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nanohttpd/nanohttpd.iml" filepath="$PROJECT_DIR$/nanohttpd/nanohttpd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
+    </modules>
+  </component>
+</project>
+
