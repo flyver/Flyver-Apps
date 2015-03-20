@@ -59,7 +59,6 @@ public class QuadCopterX implements Drone{
                 + Integer.toString(motorPowers.rc + 1000) + "| " + Integer.toString(motorPowers.rcc + 1000));
         return debugText;
     }
-    @Override
     public float[] getMotorPowers() {
         float[] powers = {motorPowers.fc,motorPowers.fcc,motorPowers.rc,motorPowers.rcc};
         return powers;

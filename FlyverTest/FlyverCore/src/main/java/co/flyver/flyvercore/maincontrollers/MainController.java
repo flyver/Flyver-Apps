@@ -25,10 +25,8 @@ import ioio.lib.spi.Log;
 /**
  * The MainController is the heart of Flyver
  * The MainController initialized all the controllers and control algorithms
- * TODO: Vertical stabilization, GPS and more
- * TODO: Break the MainController into smaller managable pieces
- * TODO: Extract the MainController as an interface
  */
+
 public class MainController extends Activity {
 
     /* CONSTANTS*/
@@ -172,18 +170,6 @@ public class MainController extends Activity {
         meanThrust = trust;
     }
 
-    public boolean getRegulatorsState() {
-        return regulatorEnabled;
-    }
-
-    private int motorSaturation(double val) {
-        if (val > MAX_MOTOR_POWER)
-            return (int) MAX_MOTOR_POWER;
-        else if (val < 0.0)
-            return 0;
-        else
-            return (int) val;
-    }
 
     /**
      * onConnectionEstablished is called when the whole systems starts
@@ -215,7 +201,6 @@ public class MainController extends Activity {
 
     /**
      * Stops the drone.
-     * NB! Currently means stopping the motors
      *
      * @param reason for logging the cause of the emergency
      */

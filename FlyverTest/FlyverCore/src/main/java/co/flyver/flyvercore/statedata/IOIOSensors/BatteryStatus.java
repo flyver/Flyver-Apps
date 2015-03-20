@@ -1,5 +1,9 @@
 package co.flyver.flyvercore.statedata.IOIOSensors;
 
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+
+import co.flyver.flyvercore.maincontrollers.MainController;
 import ioio.lib.api.AnalogInput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -59,6 +63,14 @@ public class BatteryStatus extends IOIOSensor{
             if (System.currentTimeMillis() - timer > CHECKING_TIME){
                 sendData(batteryStatus); // Send to message queue
                 timer = System.currentTimeMillis();
+
+                batteryStatus = 0;
+                if(batteryStatus<1){
+                    // Battery protection. When battery gets dangerously low. Stop the copter.
+                    MainController.getInstance().emergencyStop("Drained Battery");
+                    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+                    toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200);
+                }
             }
 
         }
