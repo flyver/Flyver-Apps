@@ -64,7 +64,6 @@ public class BatteryStatus extends IOIOSensor{
                 sendData(batteryStatus); // Send to message queue
                 timer = System.currentTimeMillis();
 
-                batteryStatus = 0;
                 if(batteryStatus<1){
                     // Battery protection. When battery gets dangerously low. Stop the copter.
                     MainController.getInstance().emergencyStop("Drained Battery");

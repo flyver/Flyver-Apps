@@ -15,14 +15,6 @@
   <component name="ChangeListManager">
     <list default="true" id="05f44a17-8f43-4108-b449-9db106969f0b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/statedata/IOIOSensors/BatteryStatus.java" afterPath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/statedata/IOIOSensors/BatteryStatus.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/dronetypes/Drone.java" afterPath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/dronetypes/Drone.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/dronetypes/QuadCopterX.java" afterPath="$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/dronetypes/QuadCopterX.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" afterPath="$PROJECT_DIR$/IOIO/iOIOLibAccessory/iOIOLibAccessory.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IOIO/iOIOLibAndroid/iOIOLibAndroid.iml" afterPath="$PROJECT_DIR$/IOIO/iOIOLibAndroid/iOIOLibAndroid.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" afterPath="$PROJECT_DIR$/IOIO/iOIOLibAndroidDevice/iOIOLibAndroidDevice.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" afterPath="$PROJECT_DIR$/IOIO/iOIOLibBT/iOIOLibBT.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/libstreaming/libstreaming.iml" afterPath="$PROJECT_DIR$/libstreaming/libstreaming.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nanohttpd/nanohttpd.iml" afterPath="$PROJECT_DIR$/nanohttpd/nanohttpd.iml" />
     </list>
     <ignored path="FlyverTest.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -88,8 +80,8 @@
       <file leaf-file-name="BatteryStatus.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/statedata/IOIOSensors/BatteryStatus.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6385911" vertical-offset="663" max-vertical-offset="1566">
-              <caret line="68" column="93" selection-start-line="68" selection-start-column="93" selection-end-line="68" selection-end-column="93" />
+            <state vertical-scroll-proportion="0.55589586" vertical-offset="663" max-vertical-offset="1548">
+              <caret line="65" column="0" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -6339,8 +6331,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/FlyverCore/src/main/java/co/flyver/flyvercore/statedata/IOIOSensors/BatteryStatus.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6385911" vertical-offset="663" max-vertical-offset="1566">
-          <caret line="68" column="93" selection-start-line="68" selection-start-column="93" selection-end-line="68" selection-end-column="93" />
+        <state vertical-scroll-proportion="0.55589586" vertical-offset="663" max-vertical-offset="1548">
+          <caret line="65" column="0" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
           <folding />
         </state>
       </provider>
